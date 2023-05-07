@@ -9,6 +9,7 @@ from typing import Callable
 def __copy(navigation_folder: str, folder: str, is_dir: bool, logger: Logger) -> None:
     if is_dir:
         if not os.path.exists(folder):
+            # not logging anything since it is a directory
             os.mkdir(folder)
         return
     shutil.copy(navigation_folder, folder)
@@ -25,6 +26,8 @@ def __remove(navigation: str, reference: str, is_dir: bool, logger: Logger) -> N
     logger.log("deleted %s" % (navigation))
 
 
+# Applies a given operation to the pair of given folders, by navigating one of the
+# folders either topdown or bottomup
 def __apply_op(
     navigation_folder: str, folder: str, op: Callable, topdown: bool, logger: Logger
 ) -> None:
