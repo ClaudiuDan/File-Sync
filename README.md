@@ -1,6 +1,6 @@
 # File-Sync
 
-Run script like this: python main.py <source_folder> <replica_folder> <time_interval_in_seconds> <log_file>
+Run script like this: `python main.py <source_folder> <replica_folder> <time_interval_in_seconds> <log_file>`
 
 Assumptions made: 
 - log file can be rewritten on every start of the script
