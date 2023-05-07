@@ -50,6 +50,10 @@ def synchronize_periodically(
     source: str, replica: str, interval: int | float, logger: Logger
 ) -> None:
     logger = logger
+    source += "/"
+    replica += "/"
+    source.replace("//", "/")
+    replica.replace("//", "/")
     while True:
         __synchronize(source, replica, logger)
         time.sleep(float(interval))
