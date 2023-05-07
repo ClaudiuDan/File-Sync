@@ -1,11 +1,11 @@
 import os.path
 
 
-def __validate_file_types(source, copy, log):
+def __validate_file_types(source: str, copy: str, log: str) -> bool:
     return os.path.isdir(source) and os.path.isdir(copy) and os.path.isfile(log)
 
 
-def __validate_paths(paths):
+def __validate_paths(paths: list[str]) -> bool:
     for path in paths:
         if not os.path.exists(path):
             print("Invalid folder path %s" % path)
@@ -13,14 +13,14 @@ def __validate_paths(paths):
     return True
 
 
-def __validate_interval(time):
+def __validate_interval(time: float | int) -> bool:
     if time.replace(".", "", 1).isnumeric():
         return True
     print("Insert a number type interval, e.g. 50")
     return False
 
 
-def validate(argv):
+def validate(argv: list[str]) -> bool:
     if len(argv) >= 2 and argv[1] == "--help":
         print(
             "usage: python main.py <source_path> <sync_path> <interval_as_seconds> <log_path>"
