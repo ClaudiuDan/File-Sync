@@ -6,54 +6,58 @@ from logger import Logger
 from typing import Callable
 
 
-def __copy(navigation: str, reference: str, logger: Logger) -> None:
-    if (
-        os.path.isdir(navigation)
-        and len(os.listdir(navigation)) == 0
-        and not os.path.exists(reference)
-    ):
-        os.mkdir(reference)
-    if os.path.isfile(navigation):
-        shutil.copyfile(navigation, reference)
-        logger.log("copy file from %s to %s" % (navigation, reference))
+def __copy(navigation_folder: str, folder: str, is_dir: bool, logger: Logger) -> None:
+    if is_dir:
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        return
+    shutil.copy(navigation_folder, folder)
+    logger.log("copied %s to %s" % (navigation_folder, folder))
 
 
-def __remove(navigation: str, reference: str, logger: Logger) -> None:
+def __remove(navigation: str, reference: str, is_dir: bool, logger: Logger) -> None:
     if os.path.exists(reference):
         return
-    if os.path.isdir(navigation) and len(os.listdir(navigation)) == 0:
+    if is_dir:
         os.rmdir(navigation)
-    if os.path.isfile(navigation):
-        os.remove(navigation)
-        logger.log("Remove file at %s" % navigation)
+        return
+    os.remove(navigation)
+    logger.log("deleted %s" % (navigation))
 
 
-def __go_through_folder(
-    navigation_folder: str, reference_folder: str, operation: Callable, logger: Logger
+def __apply_op(
+    navigation_folder: str, folder: str, op: Callable, topdown: bool, logger: Logger
 ) -> None:
-    for filename in os.listdir(navigation_folder):
-        new_navigation_path = navigation_folder + "/" + filename
-        new_reference_path = reference_folder + "/" + filename
-        if os.path.isdir(new_navigation_path):
-            __go_through_folder(
-                new_navigation_path, new_reference_path, operation, logger
-            )
-        operation(new_navigation_path, new_reference_path, logger)
+    for navigation_root, dirs, files in os.walk(navigation_folder, topdown=topdown):
+        folder_root = navigation_root.replace(navigation_folder, folder, 1)
+        [
+            op(navigation_root + "/" + dir, folder_root + "/" + dir, True, logger)
+            for dir in dirs
+        ]
+        [
+            op(navigation_root + "/" + file, folder_root + "/" + file, False, logger)
+            for file in files
+        ]
 
 
 def __synchronize(source: str, replica: str, logger: Logger) -> None:
-    __go_through_folder(source, replica, __copy, logger)
-    __go_through_folder(replica, source, __remove, logger)
+    __apply_op(source, replica, __copy, True, logger)
+    __apply_op(replica, source, __remove, False, logger)
+
+
+def __fix_folder_name(folder: str) -> str:
+    if folder[-1] == "/":
+        return folder[:-1]
+    return folder
 
 
 def synchronize_periodically(
     source: str, replica: str, interval: int | float, logger: Logger
 ) -> None:
     logger = logger
-    source += "/"
-    replica += "/"
-    source.replace("//", "/")
-    replica.replace("//", "/")
+    source = __fix_folder_name(source)
+    replica = __fix_folder_name(replica)
+
     while True:
         __synchronize(source, replica, logger)
         time.sleep(float(interval))
