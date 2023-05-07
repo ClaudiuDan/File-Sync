@@ -7,7 +7,6 @@ from typing import Callable
 
 
 def __copy(navigation: str, reference: str, logger: Logger) -> None:
-    print(navigation, reference)
     if (
         os.path.isdir(navigation)
         and len(os.listdir(navigation)) == 0
